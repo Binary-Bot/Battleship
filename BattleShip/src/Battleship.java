@@ -3,6 +3,7 @@ import java.util.Scanner;
 public class Battleship {
     final static Scanner scanner = new Scanner(System.in);
     String[][] gameBoard = new String[11][11];
+    String[][] displayBoard = new String[11][11];
 
     public void makeGame() {
         int alpha = 65;
@@ -11,18 +12,24 @@ public class Battleship {
             for (int j = 0; j < gameBoard.length; j++){
                 if (i == 0){
                     gameBoard[i][j] = Integer.toString(j);
+                    displayBoard[i][j] = Integer.toString(j);
                 }
                 else if (j == 0){
                     gameBoard[i][j] = Character.toString((char) alpha);
+                    displayBoard[i][j] = Character.toString((char) alpha);
                     alpha++;
                 }
                 else {
                     gameBoard[i][j] = "~";
+                    displayBoard[i][j] = "~";
                 }
             }
         }
         gameBoard[0][0] = " ";
         gameBoard[0][10] = "10";
+        displayBoard[0][0] = " ";
+        displayBoard[0][10] = "10";
+        seeBoard(gameBoard);
     }
 
     public void strategize() {
@@ -42,7 +49,7 @@ public class Battleship {
         while(true){
             try {
                 placeShips(ship, distance);
-                seeBoard();
+                seeBoard(gameBoard);
                 break;
             } catch(NumberFormatException e) {
                 System.out.println("Please enter numbers! Try again:");
@@ -95,6 +102,40 @@ public class Battleship {
         }
     }
 
+    public void takeShot(){
+        seeBoard(displayBoard);
+        System.out.println("\nTake a shot!");
+
+        do {
+            try {
+                String cell = scanner.next();
+                int x = Character.getNumericValue(cell.charAt(0)) - 9;
+                int y = Integer.parseInt(cell.substring(1));
+                if (gameBoard[x][y].equals("O")) {
+                    displayBoard[x][y] = "X";
+                    gameBoard[x][y] = "X";
+                    seeBoard(displayBoard);
+                    System.out.println("You hit a ship! Try again:");
+                }
+                else if (gameBoard[x][y].equals("X")) {
+                    seeBoard(displayBoard);
+                    System.out.println("You hit a ship! Try again:");
+                }
+                else{
+                    displayBoard[x][y] = "M";
+                    gameBoard[x][y] = "M";
+                    seeBoard(displayBoard);
+                    System.out.println("You missed! Try again:");
+                }
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println("Error! You entered the wrong coordinates! Try again:");
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getClass().getName());
+            }
+        } while (thereAreShips());
+        System.out.println("You sank the last ship. You won. Congratulations!");
+    }
+
     boolean isAvailable(int x1, int y1, int x2, int y2){
         boolean available = true;
         int x = x2 == 10? x2 : x2+1;
@@ -110,9 +151,22 @@ public class Battleship {
         return available;
     }
 
-    public void seeBoard(){
-        for (String[] chars : gameBoard) {
+    boolean thereAreShips(){
+        boolean value = false;
+        for (String[] strings : gameBoard) {
             for (int j = 0; j < gameBoard.length; j++) {
+                if (strings[j].equals("O")) {
+                    value = true;
+                    break;
+                }
+            }
+        }
+        return value;
+    }
+
+    public void seeBoard(String[][] board){
+        for (String[] chars : board) {
+            for (int j = 0; j < board.length; j++) {
                 System.out.print(chars[j] + " ");
             }
             System.out.print("\n");
@@ -123,8 +177,10 @@ public class Battleship {
         Battleship player1 = new Battleship();
 
         player1.makeGame();
-        player1.seeBoard();
         player1.strategize();
+        System.out.println("The game starts!");
+        player1.takeShot();
+
 
     }
 }

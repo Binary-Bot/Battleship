@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.io.IOException;
 
 public class Battleship {
     final static Scanner scanner = new Scanner(System.in);
@@ -32,7 +33,7 @@ public class Battleship {
         seeBoard(gameBoard);
     }
 
-    public void strategize() {
+    public String[][] strategize() {
         System.out.println("Enter the coordinates of the Aircraft Carrier (5 cells):");
         catchError("Aircraft Carrier", 5.0);
         System.out.println("Enter the coordinates of the Battleship (4 cells):");
@@ -43,6 +44,8 @@ public class Battleship {
         catchError("Cruiser", 3.0);
         System.out.println("Enter the coordinates of the Destroyer (2 cells):");
         catchError("Destroyer", 2.0);
+
+        return gameBoard;
     }
 
     void catchError(String ship, double distance){
@@ -102,38 +105,59 @@ public class Battleship {
         }
     }
 
-    public void takeShot(){
-        seeBoard(displayBoard);
+    public void takeShot(String[][] gameField){
         System.out.println("\nTake a shot!");
-
         do {
             try {
                 String cell = scanner.next();
                 int x = Character.getNumericValue(cell.charAt(0)) - 9;
                 int y = Integer.parseInt(cell.substring(1));
-                if (gameBoard[x][y].equals("O")) {
+                if (gameField[x][y].equals("O")) {
                     displayBoard[x][y] = "X";
-                    gameBoard[x][y] = "X";
-                    seeBoard(displayBoard);
-                    System.out.println("You hit a ship! Try again:");
+                    gameField[x][y] = "X";
+                    System.out.println("You hit a ship!");
+                    if (isShipDestroyed(gameField, x, y)){
+                        System.out.println("You sank a ship!");
+                    }
                 }
                 else if (gameBoard[x][y].equals("X")) {
-                    seeBoard(displayBoard);
-                    System.out.println("You hit a ship! Try again:");
+                    System.out.println("You hit a ship!");
                 }
                 else{
                     displayBoard[x][y] = "M";
                     gameBoard[x][y] = "M";
-                    seeBoard(displayBoard);
-                    System.out.println("You missed! Try again:");
+                    System.out.println("You missed!");
                 }
+
+                break;
             } catch (ArrayIndexOutOfBoundsException e) {
                 System.out.println("Error! You entered the wrong coordinates! Try again:");
             } catch (Exception e) {
                 System.out.println("Error: " + e.getClass().getName());
             }
         } while (thereAreShips());
-        System.out.println("You sank the last ship. You won. Congratulations!");
+    }
+
+    boolean isShipDestroyed(String[][] gameField, int x, int y) {
+        boolean destroyed = true;
+        int xMin = x == 1? x : x - 1;
+        int xMax = x == 10? x : x + 1;
+        int yMin = y == 1? y : y - 1;
+        int yMax = y == 10? y : y + 1;
+
+        if (gameField[xMin][y].equals("O")){
+            destroyed = false;
+        }
+        else if (gameField[xMax][y].equals("O")){
+            destroyed = false;
+        }
+        else if (gameField[x][yMin].equals("O")){
+            destroyed = false;
+        }
+        else if (gameField[x][yMax].equals("O")){
+            destroyed = false;
+        }
+        return destroyed;
     }
 
     boolean isAvailable(int x1, int y1, int x2, int y2){
@@ -164,6 +188,13 @@ public class Battleship {
         return value;
     }
 
+    public void displayGame(String player){
+        seeBoard(displayBoard);
+        System.out.println("--------------------");
+        seeBoard(gameBoard);
+        System.out.println(player + ", it's your turn:");
+    }
+
     public void seeBoard(String[][] board){
         for (String[] chars : board) {
             for (int j = 0; j < board.length; j++) {
@@ -173,14 +204,49 @@ public class Battleship {
         }
     }
 
+    public static int promptEnterKey() {
+        System.out.println("Press Enter and pass the move to another player");
+        int enterKey;
+        try {
+            enterKey = System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+            enterKey = 0;
+        }
+        return enterKey;
+    }
+
     public static void main(String[] args) {
         Battleship player1 = new Battleship();
+        Battleship player2 = new Battleship();
 
+        System.out.println("Player 1, place your ships on the game field");
         player1.makeGame();
-        player1.strategize();
-        System.out.println("The game starts!");
-        player1.takeShot();
+        String[][] player1field = player1.strategize();
+        int enterKey = promptEnterKey();
 
+        if (enterKey == 10) {
+            System.out.println("Player 2, place your ships on the game field");
+            player2.makeGame();
+            String[][] player2field = player2.strategize();
+            enterKey = promptEnterKey();
+            System.out.println("The game starts!");
 
+            while (true) {
+                player1.displayGame("Player 1");
+                player1.takeShot(player2field);
+                if (!player2.thereAreShips()){
+                    break;
+                }
+                enterKey = promptEnterKey();
+                player2.displayGame("Player 2");
+                player2.takeShot(player1field);
+                if (!player1.thereAreShips()){
+                    break;
+                }
+                enterKey = promptEnterKey();
+            }
+            System.out.println("You sank the last ship. You won. Congratulations!");
+        }
     }
 }

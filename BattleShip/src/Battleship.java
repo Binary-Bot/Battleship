@@ -204,16 +204,13 @@ public class Battleship {
         }
     }
 
-    public static int promptEnterKey() {
+    public static void promptEnterKey() {
         System.out.println("Press Enter and pass the move to another player");
-        int enterKey;
         try {
-            enterKey = System.in.read();
+            System.in.read();
         } catch (IOException e) {
             e.printStackTrace();
-            enterKey = 0;
         }
-        return enterKey;
     }
 
     public static void main(String[] args) {
@@ -223,30 +220,28 @@ public class Battleship {
         System.out.println("Player 1, place your ships on the game field");
         player1.makeGame();
         String[][] player1field = player1.strategize();
-        int enterKey = promptEnterKey();
+        promptEnterKey();
 
-        if (enterKey == 10) {
-            System.out.println("Player 2, place your ships on the game field");
-            player2.makeGame();
-            String[][] player2field = player2.strategize();
-            enterKey = promptEnterKey();
-            System.out.println("The game starts!");
+        System.out.println("Player 2, place your ships on the game field");
+        player2.makeGame();
+        String[][] player2field = player2.strategize();
+        promptEnterKey();
+        System.out.println("The game starts!");
 
-            while (true) {
-                player1.displayGame("Player 1");
-                player1.takeShot(player2field);
-                if (!player2.thereAreShips()){
-                    break;
-                }
-                enterKey = promptEnterKey();
-                player2.displayGame("Player 2");
-                player2.takeShot(player1field);
-                if (!player1.thereAreShips()){
-                    break;
-                }
-                enterKey = promptEnterKey();
+        while (true) {
+            player1.displayGame("Player 1");
+            player1.takeShot(player2field);
+            if (!player2.thereAreShips()){
+                break;
             }
-            System.out.println("You sank the last ship. You won. Congratulations!");
+            promptEnterKey();
+            player2.displayGame("Player 2");
+            player2.takeShot(player1field);
+            if (!player1.thereAreShips()){
+                break;
+            }
+            promptEnterKey();
         }
+        System.out.println("You sank the last ship. You won. Congratulations!");
     }
 }
